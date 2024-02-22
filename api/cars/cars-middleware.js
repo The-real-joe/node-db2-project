@@ -1,11 +1,11 @@
 const db = require('../cars/cars-model')
-const car = require('../cars/cars-model')
+const cars = require('../cars/cars-model')
 
 
 const checkCarId = async (req, res, next) => {
   // DO YOUR MAGIC
   try {
-    const findCar = await car.getById(req.params.id)
+    const findCar = await cars.getById(req.params.id)
     if (!findCar) {
       res.status(404).json({ message: `car with id ${req.params.id} is not found` })
     } else {
@@ -39,7 +39,7 @@ const checkVinNumberValid = (req, res, next) => {
 const checkVinNumberUnique = async (req, res, next) => {
   // DO YOUR MAGIC
 try{
-  const vinExist = await car.getByVin(req.body.vin)
+  const vinExist = await cars.getByVin(req.body.vin)
   if(vinExist) {
     res.status(400).json({ message: 'vin must be unique' })
   } else {
@@ -50,11 +50,21 @@ try{
 }
 }
 
+const checkPutPayload = (req, res, next) => {
+  // DO YOUR MAGIC
+  if(!req.body.title || !req.body.transmission) {
+    res.status(400).json({ message: 'title and transmission are required' })
+  } else {
+    next()
+  }
+}
+
 
 
 module.exports = {
   checkCarId,
   checkCarPayload,
   checkVinNumberValid,
-  checkVinNumberUnique
+  checkVinNumberUnique,
+  checkPutPayload
 }
