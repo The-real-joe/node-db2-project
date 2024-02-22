@@ -1,7 +1,11 @@
-const express = require("express")
+const express = require('express');
+const carsRouter = require('./cars/cars-router');
 
-const server = express()
+const server = express();
+const cors = require('cors');
 
-// DO YOUR MAGIC
+server.use(express.json());
+server.use('/cars', carsRouter);
+server.use(cors());
 
-module.exports = server
+module.exports = server;
