@@ -1,70 +1,72 @@
-const db = require('../cars/cars-model')
-const cars = require('../cars/cars-model')
+const db = require('../../data/db-config');
+const car = require('./cars-model');
+const vin = require('vin-validator');
+
 
 
 const checkCarId = async (req, res, next) => {
   // DO YOUR MAGIC
   try {
-    const findCar = await cars.getById(req.params.id)
-    if (!findCar) {
-      res.status(404).json({ message: `car with id ${req.params.id} is not found` })
-    } else {
-      req.car = findCar
-      next()
+    const foundCar = await car.getById(req.params.id);
+    if(!foundCar) {  
+      next({ status: 404, message: `car with id ${req.params.id} is not found` })
+    }else {
+      req.car = foundCar;
+         next();
     }
-  } catch(err) {
-    next(err)
+
+  }catch (err) {
+    next(err);
   }
 }
 
 const checkCarPayload = (req, res, next) => {
   // DO YOUR MAGIC
-  if(!req.body.vin || !req.body.make || !req.body.model || !req.body.mileage) {
-    res.status(400).json({ message: 'vin, make, model, and mileage are required' })
-  } else {
-    next()
-  }
-}
+
+//const { vin, make, model, mileage } = req.body;
+  if (!req.body.vin) return next({ 
+    status: 400, message: "vin is missing" });
+  if (!req.body.make) return next({ 
+    status: 400, message: "make is missing" });
+  if (!req.body.model) return next({ 
+    status: 400, message: "model is missing" });
+  if (!req.body.mileage) return next({ 
+    status: 400, message: "mileage is missing" }); // Note: Using == null to catch both null and undefined
+  next();
+};
 
 const checkVinNumberValid = (req, res, next) => {
-  // DO YOUR MAGIC
-  const vin = require('vin-validator')
-  if(!vin.isValid(req.body.vin)) {
-    res.status(400).json({ message: 'vin is invalid' })
-  } else {
-    next()
+  // DO YOUR MAGIC 
+  if(vin.validate(req.body.vin)) {
+    next();
+  }else {
+    next({
+      status: 400,
+      message: `vin ${req.body.vin} is invalid`,
+    })
   }
-}
+};
+
+
 
 const checkVinNumberUnique = async (req, res, next) => {
   // DO YOUR MAGIC
-try{
-  const vinExist = await cars.getByVin(req.body.vin)
-  if(vinExist) {
-    res.status(400).json({ message: 'vin must be unique' })
-  } else {
-    next()
+  //const carVin = req.body.vin;
+  try {
+    const vinExist = await car.getByVin(req.body.vin);
+    if (vinExist) {
+      next({ status: 400, message: `vin ${req.body.vin} already exists` });
+    } else {
+      next();
+    }
+  } catch (err) {
+    next(err);
   }
-} catch(err) {
-  next(err)
-}
-}
+};
 
-const checkPutPayload = (req, res, next) => {
-  // DO YOUR MAGIC
-  if(!req.body.title || !req.body.transmission) {
-    res.status(400).json({ message: 'title and transmission are required' })
-  } else {
-    next()
-  }
-}
-
-
-
-module.exports = {
+module.exports ={
   checkCarId,
   checkCarPayload,
   checkVinNumberValid,
   checkVinNumberUnique,
-  checkPutPayload
 }
